@@ -1,4 +1,4 @@
-FROM golang:1.19-buster
+FROM golang:1.20-buster
 
 ARG HELM_VERSION=v3.12.1
 
