@@ -1,4 +1,4 @@
-FROM golang:1.20-buster
+FROM golang:1.20-buster as builder
 
 ARG HELM_VERSION=v3.12.1
 
@@ -31,6 +31,12 @@ RUN set -ex; \
     make dist checksum VERSION="${HELM_VERSION}"; \
     rm -rf _dist/linux-loong64
 
+FROM debian:buster-slim
+
+WORKDIR /opt/helm
+
+COPY --from=builder /opt/helm/_dist /opt/helm/dist
+
 VOLUME /dist
 
-CMD cp -rf _dist/* /dist/
+CMD cp -rf dist/* /dist/
