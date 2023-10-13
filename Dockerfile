@@ -1,6 +1,6 @@
 FROM golang:1.20-buster as builder
 
-ARG HELM_VERSION=v3.12.1
+ARG HELM_VERSION=v3.13.1
 
 ENV HELM_VERSION=${HELM_VERSION}
 
