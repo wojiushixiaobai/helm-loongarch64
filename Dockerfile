@@ -2,11 +2,9 @@ ARG GO_VERSION=1.22
 
 FROM cr.loongnix.cn/library/golang:${GO_VERSION}-buster as builder
 
-ARG VERSION
-
-ARG WORK_DIR=/opt/helm
-
-RUN set -ex; \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    set -ex; \
     ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime; \
     apt-get update; \
     apt-get install -y git file make zip unzip
@@ -20,6 +18,9 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     mv ${GOPATH}/pkg/mod/github.com/xen0n/gox@v* ${GOPATH}/pkg/mod/github.com/mitchellh/gox@v1.0.1; \
     cd ${GOPATH}/pkg/mod/github.com/mitchellh/gox@v1.0.1; \
     go install .
+
+ARG VERSION
+ARG WORK_DIR=/opt/helm
 
 RUN set -ex; \
     git clone -b ${VERSION} --depth=1 https://github.com/helm/helm ${WORK_DIR}
