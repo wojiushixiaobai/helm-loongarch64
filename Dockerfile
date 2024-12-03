@@ -1,8 +1,8 @@
-FROM golang:1.20-buster as builder
+ARG GO_VERSION=1.22
 
-ARG HELM_VERSION=v3.12.1
+FROM cr.loongnix.cn/library/golang:${GO_VERSION}-buster as builder
 
-ENV HELM_VERSION=${HELM_VERSION}
+ARG VERSION
 
 ARG WORK_DIR=/opt/helm
 
@@ -11,10 +11,10 @@ RUN set -ex; \
     apt-get update; \
     apt-get install -y git file make zip unzip
 
-ENV GOPROXY=https://goproxy.io \
-    CGO_ENABLED=0
+ENV CGO_ENABLED=0
 
-RUN set -ex; \
+RUN --mount=type=cache,target=/go/pkg/mod \
+    set -ex; \
     mkdir -p ${GOPATH}/pkg/mod/github.com/mitchellh; \
     go install github.com/xen0n/gox@go1.19 || true; \
     mv ${GOPATH}/pkg/mod/github.com/xen0n/gox@v* ${GOPATH}/pkg/mod/github.com/mitchellh/gox@v1.0.1; \
@@ -22,16 +22,17 @@ RUN set -ex; \
     go install .
 
 RUN set -ex; \
-    git clone -b ${HELM_VERSION} --depth=1 https://github.com/helm/helm ${WORK_DIR}
+    git clone -b ${VERSION} --depth=1 https://github.com/helm/helm ${WORK_DIR}
 
 WORKDIR ${WORK_DIR}
 
-RUN set -ex; \
-    make build-cross TARGETS="linux/loong64" VERSION="${HELM_VERSION}"; \
-    make dist checksum VERSION="${HELM_VERSION}"; \
+RUN --mount=type=cache,target=/go/pkg/mod \
+    set -ex; \
+    make build-cross TARGETS="linux/loong64" VERSION="${VERSION}"; \
+    make dist checksum VERSION="${VERSION}"; \
     rm -rf _dist/linux-loong64
 
-FROM debian:buster-slim
+FROM cr.loongnix.cn/library/debian:buster-slim
 
 WORKDIR /opt/helm
 
