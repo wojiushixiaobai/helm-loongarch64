@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=jcroql
+version: 1
+
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+    # you may remove this if you don't need go generate
+    - go generate ./...
+
+builds:
+  - main: ./cmd/helm
+    binary: helm
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -extldflags "-static"
+      - -X helm.sh/helm/v3/internal/version.version={{ .Tag }}
+      - -X helm.sh/helm/v3/internal/version.metadata={{ .Env.VERSION_METADATA }}
+      - -X helm.sh/helm/v3/internal/version.gitCommit={{ .Commit }}
+      - -X helm.sh/helm/v3/internal/version.gitTreeState={{ .Env.GIT_DIRTY }}
+      - -X helm.sh/helm/v3/pkg/lint/rules.k8sVersionMajor={{ .Env.K8S_MODULES_MAJOR_VER }}
+      - -X helm.sh/helm/v3/pkg/lint/rules.k8sVersionMinor={{ .Env.K8S_MODULES_MINOR_VER }}
+      - -X helm.sh/helm/v3/pkg/chartutil.k8sVersionMajor={{ .Env.K8S_MODULES_MAJOR_VER }}
+      - -X helm.sh/helm/v3/pkg/chartutil.k8sVersionMinor={{ .Env.K8S_MODULES_MINOR_VER }}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - loong64
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .Binary }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}{{- if .Arm }}v{{ .Arm }}{{ end }}"
+    wrap_in_directory: true
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
