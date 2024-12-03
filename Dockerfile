@@ -2,7 +2,7 @@ ARG GO_VERSION=1.22
 
 FROM cr.loongnix.cn/library/golang:${GO_VERSION}-buster as builder
 
-ARG VERSION
+ARG VERSION=v3.15.1
 
 ARG WORK_DIR=/opt/helm
 
