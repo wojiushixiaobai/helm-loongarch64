@@ -8,7 +8,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     set -ex; \
     go install github.com/goreleaser/goreleaser@${GORELEASER_VERSION}
 
-ARG VERSION
+ARG VERSION=v3.15.4
 
 ARG WORK_DIR=/opt/helm
 
